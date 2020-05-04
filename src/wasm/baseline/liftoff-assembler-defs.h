@@ -69,6 +69,14 @@ constexpr RegList kLiftoffAssemblerFpCacheRegs = CPURegister::ListOf(
     d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d16, d17,
     d18, d19, d20, d21, d22, d23, d24, d25, d26, d27, d28, d29);
 
+#elif V8_TARGET_ARCH_S390X
+
+constexpr RegList kLiftoffAssemblerGpCacheRegs =
+    Register::ListOf(r2, r3, r4, r5, r6, r7, r8);
+
+constexpr RegList kLiftoffAssemblerFpCacheRegs = DoubleRegister::ListOf(
+    d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12);
+
 #else
 
 constexpr RegList kLiftoffAssemblerGpCacheRegs = 0xff;
@@ -115,6 +123,19 @@ constexpr Condition kUnsignedLessThan = lo;
 constexpr Condition kUnsignedLessEqual = ls;
 constexpr Condition kUnsignedGreaterThan = hi;
 constexpr Condition kUnsignedGreaterEqual = hs;
+
+#elif V8_TARGET_ARCH_S390X
+
+constexpr Condition kEqual = eq;
+constexpr Condition kUnequal = ne;
+constexpr Condition kSignedLessThan = static_cast<Condition>(3);
+constexpr Condition kSignedLessEqual = static_cast<Condition>(5);
+constexpr Condition kSignedGreaterThan = static_cast<Condition>(6);
+constexpr Condition kSignedGreaterEqual = static_cast<Condition>(9);
+constexpr Condition kUnsignedLessThan = lt;
+constexpr Condition kUnsignedLessEqual = le;
+constexpr Condition kUnsignedGreaterThan = gt;
+constexpr Condition kUnsignedGreaterEqual = ge;
 
 #else
 

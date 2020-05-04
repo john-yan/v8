@@ -4970,9 +4970,11 @@ EVALUATE(CDR) {
 }
 
 EVALUATE(LER) {
-  UNIMPLEMENTED();
-  USE(instr);
-  return 0;
+  DCHECK_OPCODE(LER);
+  DECODE_RR_INSTRUCTION(r1, r2);
+  int64_t r2_val = get_f_register(r2);
+  set_d_register(r1, r2_val);
+  return length;
 }
 
 EVALUATE(STH) {
@@ -7274,6 +7276,9 @@ EVALUATE(FIEBRA) {
     case Assembler::FIDBRA_ROUND_TOWARD_NEG_INF:
       set_d_register_from_float32(r1, std::floor(r2_val));
       break;
+    case Assembler::FIDBRA_ROUND_TO_NEAREST_TO_EVEN:
+      set_d_register_from_float32(r1, std::nearbyint(r2_val));
+      break;
     default:
       UNIMPLEMENTED();
       break;
@@ -7316,6 +7321,9 @@ EVALUATE(FIDBRA) {
       break;
     case Assembler::FIDBRA_ROUND_TOWARD_NEG_INF:
       set_d_register_from_double(r1, std::floor(r2_val));
+      break;
+    case Assembler::FIDBRA_ROUND_TO_NEAREST_TO_EVEN:
+      set_d_register_from_double(r1, std::nearbyint(r2_val));
       break;
     default:
       UNIMPLEMENTED();

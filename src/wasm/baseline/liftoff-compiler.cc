@@ -1970,7 +1970,36 @@ class LiftoffCompiler {
       outstanding_op_ = kNoOutstandingOp;
     } else {
       // Otherwise, it's an i32 compare opcode.
+#if V8_TARGET_ARCH_S390X
+      Condition tmp = GetCompareCondition(outstanding_op_);
+      DCHECK(tmp != al);
+      switch (tmp) {
+        case kSignedLessThan:
+          tmp = kUnsignedLessThan;
+          break;
+        case kSignedGreaterThan:
+          tmp = kUnsignedGreaterThan;
+          break;
+        case kSignedLessEqual:
+          tmp = kUnsignedLessEqual;
+          break;
+        case kSignedGreaterEqual:
+          tmp = kUnsignedGreaterEqual;
+          break;
+        case kEqual:
+        case kUnequal:
+        case kUnsignedLessThan:
+        case kUnsignedGreaterThan:
+        case kUnsignedLessEqual:
+        case kUnsignedGreaterEqual:
+          break;
+        default:
+          DCHECK(false);
+      }
+      Condition cond = NegateCondition(tmp);
+#else
       Condition cond = NegateCondition(GetCompareCondition(outstanding_op_));
+#endif
       Register rhs = value;
       Register lhs = __ PopToRegister(LiftoffRegList::ForRegs(rhs)).gp();
       __ emit_cond_jump(cond, &cont_false, kWasmI32, lhs, rhs);
