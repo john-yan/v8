@@ -694,7 +694,7 @@ void LiftoffAssembler::LoadReturnStackSlot(LiftoffRegister dst, int offset,
 void LiftoffAssembler::MoveStackValue(uint32_t dst_offset, uint32_t src_offset,
                                       ValueType type) {
   DCHECK_NE(dst_offset, src_offset);
-  LiftoffRegister reg = GetUnusedRegister(reg_class_for(type));
+  LiftoffRegister reg = GetUnusedRegister(reg_class_for(type), {});
   Fill(reg, src_offset, type);
   Spill(dst_offset, reg, type);
 }
@@ -754,7 +754,7 @@ void LiftoffAssembler::Spill(int offset, WasmValue value) {
   UseScratchRegisterScope temps(this);
   Register src = no_reg;
   if (!is_uint12(abs(dst.offset()))) {
-    src = GetUnusedRegister(kGpReg).gp();
+    src = GetUnusedRegister(kGpReg, {}).gp();
   } else {
     src = temps.Acquire();
   }
@@ -1290,6 +1290,38 @@ bool LiftoffAssembler::emit_type_conversion(WasmOpcode opcode,
       b(Condition(1), trap);
       return true;
     }
+    case kExprI32SConvertSatF32: {
+      UseScratchRegisterScope temps(this);
+      SwVfpRegister scratch_f = temps.AcquireS();
+      vcvt_s32_f32(
+          scratch_f,
+          liftoff::GetFloatRegister(src.fp()));  // f32 -> i32 round to zero.
+      vmov(dst.gp(), scratch_f);
+      return true;
+    }
+    case kExprI32UConvertSatF32: {
+      UseScratchRegisterScope temps(this);
+      SwVfpRegister scratch_f = temps.AcquireS();
+      vcvt_u32_f32(
+          scratch_f,
+          liftoff::GetFloatRegister(src.fp()));  // f32 -> u32 round to zero.
+      vmov(dst.gp(), scratch_f);
+      return true;
+    }
+    case kExprI32SConvertSatF64: {
+      UseScratchRegisterScope temps(this);
+      SwVfpRegister scratch_f = temps.AcquireS();
+      vcvt_s32_f64(scratch_f, src.fp());  // f64 -> i32 round to zero.
+      vmov(dst.gp(), scratch_f);
+      return true;
+    }
+    case kExprI32UConvertSatF64: {
+      UseScratchRegisterScope temps(this);
+      SwVfpRegister scratch_f = temps.AcquireS();
+      vcvt_u32_f64(scratch_f, src.fp());  // f64 -> u32 round to zero.
+      vmov(dst.gp(), scratch_f);
+      return true;
+    }
     case kExprI32ReinterpretF32:
       lgdr(dst.gp(), src.fp());
       srlg(dst.gp(), dst.gp(), Operand(32));
@@ -1371,6 +1403,11 @@ bool LiftoffAssembler::emit_type_conversion(WasmOpcode opcode,
       b(Condition(1), trap);
       return true;
     }
+    case kExprI64SConvertSatF32:
+    case kExprI64UConvertSatF32:
+    case kExprI64SConvertSatF64:
+    case kExprI64UConvertSatF64:
+      return false;
     default:
       UNREACHABLE();
   }
